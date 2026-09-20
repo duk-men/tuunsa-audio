@@ -1,0 +1,3 @@
+*.mp3 binary
+*.jpg binary
+*.txt text eol=lf
