@@ -22,7 +22,9 @@ SHOW = {
     "author": "본인 학습용",
     "summary": (
         "투자자산운용사 시험 대비 요약 노트를 강의형 팟캐스트로 재구성한 개인 학습용 오디오입니다. "
-        "금융투자세제부터 분산투자기법까지 12편으로 구성되어 있습니다."
+        "금융투자세제부터 분산투자기법까지 12편. 반복 청취로 외워지도록 각 편에 "
+        "지난 편 복습 퀴즈, 대단원별 확인 퀴즈, 편말 핵심 점검을 넣었고 "
+        "정답 전에 3초 무음을 두어 스스로 답을 떠올릴 시간을 줍니다."
     ),
     "lang": "ko",
     "category": "Education",
@@ -166,6 +168,15 @@ def build(base_url: str) -> None:
 </style></head><body><div class="wrap">
   <h1>{html.escape(SHOW['title'])}</h1>
   <p class="sub">{html.escape(SHOW['subtitle'])} · 총 {len(items)}편 · {hhmmss(total)}</p>
+
+  <div class="box">
+    <h2>듣는 방법</h2>
+    <p style="margin:0;color:var(--mut);font-size:.92rem">
+      각 편은 <strong>지난 편 복습 퀴즈 → 본문 → 대단원별 확인 퀴즈 → 편말 핵심 점검</strong> 순서입니다.
+      질문 뒤에는 3초 무음이 있습니다. 소리 내어 답하지 않아도 되고, 답이 떠오르지 않아도 괜찮습니다.
+      떠올리려 애쓰는 그 순간에 기억이 만들어집니다. 시간이 없으면 각 편 마지막
+      <strong>핵심 점검</strong>만 반복해 들으세요.</p>
+  </div>
 
   <div class="box">
     <h2>아이폰에서 듣기</h2>
