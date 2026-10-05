@@ -62,6 +62,9 @@ EPISODES = [
 # 1편을 이 날짜로 두고 하루씩 뒤로 배치한다 (팟캐스트 앱에서 1편부터 정렬되도록).
 START = dt.datetime(2026, 9, 1, 7, 0, 0)
 
+# 같은 피드를 내보낼 경로들. 앱이 주소 단위로 피드를 캐싱하므로 예비 주소를 둔다.
+FEED_NAMES = ["feed.xml", "podcast.xml", "tuunsa.rss"]
+
 
 def stamped(num: str) -> Path:
     """epNN*.mp3 를 내용 해시가 박힌 epNN.<해시>.mp3 로 맞춰두고 그 경로를 돌려준다.
@@ -136,13 +139,18 @@ def build(base_url: str) -> None:
         </div>
       </li>""")
 
-    feed = f"""<?xml version="1.0" encoding="UTF-8"?>
+    # 같은 내용을 여러 경로로 발행한다. 앱이 특정 주소의 피드를 캐싱해 갱신이 안 될 때
+    # 한 번도 쓰지 않은 주소로 등록하면 깨끗하게 받아간다.
+    for name in FEED_NAMES:
+        feed = f"""<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0"
      xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd"
+     xmlns:atom="http://www.w3.org/2005/Atom"
      xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
     <title>{escape(SHOW['title'])}</title>
     <link>{base}/</link>
+    <atom:link href="{base}/{name}" rel="self" type="application/rss+xml"/>
     <language>{SHOW['lang']}</language>
     <description>{escape(SHOW['summary'])}</description>
     <itunes:author>{escape(SHOW['author'])}</itunes:author>
@@ -155,12 +163,13 @@ def build(base_url: str) -> None:
     <itunes:owner>
       <itunes:name>{escape(SHOW['author'])}</itunes:name>
     </itunes:owner>
+    <generator>build_feed.py</generator>
     <lastBuildDate>{rfc2822(dt.datetime.now())}</lastBuildDate>
 {chr(10).join(items)}
   </channel>
 </rss>
 """
-    (ROOT / "docs" / "feed.xml").write_text(feed, encoding="utf-8")
+        (ROOT / "docs" / name).write_text(feed, encoding="utf-8")
 
     page = f"""<!doctype html>
 <html lang="ko"><head><meta charset="utf-8">

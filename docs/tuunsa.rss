@@ -6,7 +6,7 @@
   <channel>
     <title>투자자산운용사 핵심정리</title>
     <link>https://duk-men.github.io/tuunsa-audio/</link>
-    <atom:link href="https://duk-men.github.io/tuunsa-audio/feed.xml" rel="self" type="application/rss+xml"/>
+    <atom:link href="https://duk-men.github.io/tuunsa-audio/tuunsa.rss" rel="self" type="application/rss+xml"/>
     <language>ko</language>
     <description>투자자산운용사 시험 대비 요약 노트를 강의형 팟캐스트로 재구성한 개인 학습용 오디오입니다. 금융투자세제부터 분산투자기법까지 12편. 반복 청취로 외워지도록 각 편에 지난 편 복습 퀴즈, 대단원별 확인 퀴즈, 편말 핵심 점검을 넣었고 정답 전에 3초 무음을 두어 스스로 답을 떠올릴 시간을 줍니다.</description>
     <itunes:author>본인 학습용</itunes:author>
