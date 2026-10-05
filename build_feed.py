@@ -7,6 +7,7 @@ usage:
 """
 import argparse
 import datetime as dt
+import hashlib
 import html
 from pathlib import Path
 from xml.sax.saxutils import escape
@@ -62,6 +63,30 @@ EPISODES = [
 START = dt.datetime(2026, 9, 1, 7, 0, 0)
 
 
+def stamped(num: str) -> Path:
+    """epNN*.mp3 를 내용 해시가 박힌 epNN.<해시>.mp3 로 맞춰두고 그 경로를 돌려준다.
+
+    팟캐스트 앱은 guid와 enclosure URL로 에피소드를 식별하기 때문에, 음원을 다시
+    만들어도 이름이 같으면 새 파일을 받지 않는다. 내용이 바뀌면 이름도 바뀌도록 해서
+    앱이 새 에피소드로 인식하게 한다.
+    """
+    found = sorted(AUDIO.glob(f"ep{num}*.mp3"))
+    if not found:
+        return AUDIO / f"ep{num}.mp3"          # 없음 (호출부에서 걸러짐)
+
+    # 가장 최근에 쓰인 것을 원본으로 본다 (tts.py가 막 만들어 둔 epNN.mp3)
+    src = max(found, key=lambda f: f.stat().st_mtime)
+    dst = AUDIO / f"ep{num}.{hashlib.sha1(src.read_bytes()).hexdigest()[:8]}.mp3"
+
+    if src != dst:
+        src.replace(dst)                        # 먼저 이름을 바꾸고
+        print(f"  ep{num}: {src.name} -> {dst.name}")
+    for stale in found:                         # 그 다음에 묵은 이름 정리
+        if stale != dst and stale.exists():
+            stale.unlink()
+    return dst
+
+
 def rfc2822(d: dt.datetime) -> str:
     return d.strftime("%a, %d %b %Y %H:%M:%S +0900")
 
@@ -76,15 +101,16 @@ def build(base_url: str) -> None:
     items, rows, total = [], [], 0.0
 
     for i, (num, title, desc) in enumerate(EPISODES):
-        mp3 = AUDIO / f"ep{num}.mp3"
+        mp3 = stamped(num)
         if not mp3.exists():
-            print(f"  ! ep{num}.mp3 없음 - 건너뜀")
+            print(f"  ! ep{num} 음원 없음 - 건너뜀")
             continue
         size = mp3.stat().st_size
         dur = MP3(mp3).info.length
         total += dur
         pub = START + dt.timedelta(days=i)
         full = f"{num}. {title}"
+        rev = mp3.stem.split(".", 1)[1]          # 내용 해시
 
         items.append(f"""    <item>
       <title>{escape(full)}</title>
@@ -93,8 +119,8 @@ def build(base_url: str) -> None:
       <itunes:episodeType>full</itunes:episodeType>
       <description>{escape(desc)}</description>
       <itunes:summary>{escape(desc)}</itunes:summary>
-      <enclosure url="{base}/audio/ep{num}.mp3" length="{size}" type="audio/mpeg"/>
-      <guid isPermaLink="false">tuunsa-ep{num}</guid>
+      <enclosure url="{base}/audio/{mp3.name}" length="{size}" type="audio/mpeg"/>
+      <guid isPermaLink="false">tuunsa-ep{num}-{rev}</guid>
       <pubDate>{rfc2822(pub)}</pubDate>
       <itunes:duration>{hhmmss(dur)}</itunes:duration>
       <itunes:explicit>false</itunes:explicit>
@@ -104,7 +130,7 @@ def build(base_url: str) -> None:
         <div class="ep"><span class="num">{num}</span>
           <div><strong>{html.escape(title)}</strong>
             <p>{html.escape(desc)}</p>
-            <audio controls preload="none" src="audio/ep{num}.mp3"></audio>
+            <audio controls preload="none" src="audio/{mp3.name}"></audio>
             <span class="dur">{hhmmss(dur)}</span>
           </div>
         </div>

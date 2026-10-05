@@ -128,10 +128,15 @@ async def main() -> int:
         return 1
 
     for src in targets:
-        dst = OUT / ("ep" + src.name[:2] + ".mp3")
-        if dst.exists() and not args.force:
-            print(f"  skip {dst.name} (이미 있음)")
+        num = src.name[:2]
+        # build_feed.py가 epNN.<해시>.mp3 로 이름을 바꿔두므로 glob으로 찾는다.
+        existing = sorted(OUT.glob(f"ep{num}*.mp3"))
+        if existing and not args.force:
+            print(f"  skip ep{num} (이미 있음: {existing[0].name})")
             continue
+        for old in existing:                    # 새로 만들기 전에 옛 음원 제거
+            old.unlink()
+        dst = OUT / f"ep{num}.mp3"
         print(f"[TTS] {src.name}")
         for attempt in range(1, 4):
             try:
